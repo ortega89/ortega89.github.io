@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+<title>Электронный тест</title>
+<style>
+<!--
+div.centered {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	width: 400px;
+	margin-left: -200px;
+	height: 440px;
+	margin-top: -220px;
+	text-align: center;
+}
+div.centered table {
+	width: 100%;
+	height: 100%;
+	border: 1px solid #000;
+	padding: 0 3px;
+}
+
+div.centered table tr td {
+	vertical-align: middle;
+	border: 0px solid #000;
+}
+
+
+input[type="button"], [type="submit"] {
+	display: block;
+	width: 80%;
+	margin: 4px auto;
+	padding: 4px 0px;
+	/*background: #FED;*/
+	font: 14px Tahoma;
+}
+
+td#top {
+	height: 30px;
+	font-weight: bold;
+}
+
+td#vopr {
+	padding: 30px 0;
+}
+
+td#bottom {
+	height: 50px;
+	/*text-align: left;*/
+	vertical-align: bottom;
+}
+
+#back {
+	width: 20%;
+	margin: 0 auto 0 0;
+	display: none;
+}
+
+#start {
+	display: none;
+}
+-->
+</style>
+<script language='javascript' type='text/javascript'>
+<!--
+
+//////////// Здесь начинается область инициализации. Можете смело орудовать в её пределах ////////////
+
+// Индекс первого вопроса. Первый вопрос отображается при загрузку страницы.
+// Это может быть что-то вроде введения в тест и содержать один вариант ответа: "Начать".
+// Лучше не менять.
+var vnum = 0;
+
+// Заголовок теста — указывается в первом вопросе в качестве шапки.
+var title = "Тест: коллектив и личность";
+
+// Шапка вопроса, где вместо ## будет подставлен номер вопроса
+var prefix = "Вопрос № ##";
+
+// Текст шапки для результата тестирования, где вместо ## будет набранный балл
+var ending = "Ваш результат: ##/3 баллов";
+
+// Здесь указываются вопросы:
+// new Array(
+//		"Текст вопроса",
+//		"Вариант 1", балл 1,
+//		"Вариант 2", балл 2
+//	)
+// Не забывайте разделять вопросы запятыми.
+
+var vopros = new Array(
+	new Array(
+		"Привет! Это тест на коллектив. Тест для коллектива. Решается коллективом, но не коллективно, а каждый по отдельности. Ничего серьёзного не ожидайте, а то смеяться будете.",
+		"Хорошо. Начинаем.", 0
+	),
+	
+	new Array(
+		"Вопрос 1: кто ты?",
+		"Реальный пацан", 0,
+		"Крутая чувиха", 1,
+		"Капитан Очевидность", 0
+	),	
+	
+	new Array(
+		"Чем волосы красишь?",
+		"Аммиаком", 0,
+		"Гуашью", 0,
+		"У меня с рождения такие", 1
+	),
+	
+	new Array(
+		"Сколько времени?",
+		"22:52", 1,
+		"25:22", 0,
+		"-&phi;&iota;:&phi;&alpha;", 0,
+		"Много. Уже вечер", 0,
+		"Часы встали :(", 0
+	)
+);
+
+// Здесь указываются варианты результатов:
+// new Array(нижний предел, верхний предел, "Описание результата")
+// Результат засчитывается, если суммарное число баллов 
+// оказалось не меньше нижнего предела и не больше верхнего
+
+var result = new Array(
+	new Array(0,1,"Вы очень скучный человек. <br> Правоспособность — способность лиц иметь гражданские права и нести обязанности. Дико много разного глупого текста и всякой бредятины, интересной только скучному человеку. Я пишу сюда весь этот <br>этот текст, чтобы показать, что его можно разместить достаточно много. А вы заметили, что слово \"этот\" повторяется в предыдущем предложении? Вот и славно. А ведь можно ещё больше, и ещё, и ещё, как у Винни-Пуха, который сидел у Кролика и лопал мёд без конца."),
+	new Array(2,2,"Вы интересный человек. Я не нашёл, что сюда написать интересного, но думаю, что вы сами решите эту проблему, вы же интересный человек."),
+	new Array(3,3,"Вы подглядели в ответы?! Не ожидал от вас такого. А ещё говорят, что для уважения к человеку надо писать \"Вы\", а не \"вы\". <br>Короче, свой тест Вам сделать не составит большого труда.")
+);
+
+//////////// Здесь заканчивается область инициализации. Дальше идёт рабочий код, его трогать не нужно ////////////
+
+
+
+var otvet = new Array();
+for (i = 0; i < vopros.length; i++)
+{
+	otvet[i] = 0;
+}
+
+// Функция упрощает обращение к элементу по его идентификатору id
+function elem(id)
+{
+	return document.getElementById(id);
+}
+
+// Функция показывает вопрос с индексом num, причём 0 <= num < число вопросов, включая вступление.
+// Если num >= числу вопросов, то подводятся итоги и выдаётся заключение.
+function show_vopros(num)
+{
+	elem('back').style.display = (num == 0 || num >= vopros.length) ? 'none' : 'block';
+	// Если надо вывести очередной вопрос
+	if (num >= 0 && num < vopros.length)
+	{
+		var v = vopros[num];
+		vnum = num;
+		elem('top').innerHTML = (vnum == 0) ? title : prefix.replace("##",vnum.toString());
+		elem('vopr').innerHTML = v[0];
+		var s = "";
+		
+		// Здесь я предусмотрел обработку случая, когда в первом вопросе один вариант,
+		// то есть когда первый вопрос является вступлением
+		if (num == 0 && v.length == 3)
+		{
+			elem('start').value = v[1];
+			elem('start').style.display = 'block';
+			elem('otv').innerHTML = '';
+		}
+		else
+		{
+			elem('start').style.display = 'none';		
+			for (i = 1; i < v.length; i+=2)
+			{
+				s += "<input type='button' value='"+v[i]+"' onclick='setOtvet(vnum, "+v[i+1].toString()+");'>\r\n";
+			}
+			elem('otv').innerHTML = s;
+		}
+	}
+	// Если надо выдать результат
+	else
+	{
+		var p = 0;
+		// Считаем сумму баллов за ответы
+		for (i = 0; i < otvet.length; i++)
+			p += otvet[i];
+		// Теперь ищем подходящую категорию результата
+		var found = false;
+		for (i = 0; i < result.length && !found; i++)
+		{
+			var R = result[i];
+			if (p >= R[0] && p <= R[1])
+				found = true;
+		}
+		var s = "";
+		// Если подходящая категория найдена — берём её текст
+		if (found)
+			s = R[2];
+		// Иначе извиняемся за неполадки в работе теста
+		else
+			s = "К сожалению, Вы не попадаете ни в одну категорию из предусмотренных тестом. "+
+				"Пожалуйста, сообщите об этом преподавателю или лаборанту.";
+		elem('top').innerHTML = ending.replace("##",p.toString());
+		elem('vopr').innerHTML = s;
+		elem('otv').innerHTML = "";
+		elem('bottom').innerHTML = "<form><input type='submit' value='Начать заново'></form>";
+	}
+}
+
+// Функция отмечает "value" баллов за ответ на вопрос № "num"
+function setOtvet(num, value)
+{
+	otvet[num] = value;
+	show_vopros(vnum+1);
+}
+
+function goBack()
+{
+	show_vopros(vnum-1);
+}
+-->
+</script>
+</head>
+<body onload='show_vopros(vnum);'>
+<div class='centered'>
+<table id='tbl'>
+<tr><td id='top'>
+</td></tr>
+<tr><td id='vopr'>
+</td></tr>
+<tr><td>
+	<form name='ff1' id='otv'>
+	</form>
+</td></tr>
+<tr><td id='bottom'>
+	<input type='button' id='back' value='< Назад' onclick='goBack();'>
+	<input type='button' id='start' value='' onclick='show_vopros(vnum+1);'>
+</td></tr>
+</table>
+</div>
+</body>
+</html>
